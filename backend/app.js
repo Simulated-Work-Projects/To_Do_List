@@ -18,7 +18,7 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
   );
   if (req.method === "OPTIONS") {
     res.sendStatus(200);
@@ -93,7 +93,7 @@ app.get("/api/todos", async (req, res) => {
     // Filter by status
     if (status) {
       todos = todos.filter((todo) =>
-        status === "completed" ? todo.completed : !todo.completed,
+        status === "completed" ? todo.completed : !todo.completed
       );
     }
 
@@ -106,7 +106,7 @@ app.get("/api/todos", async (req, res) => {
     if (sortBy === "priority") {
       const priorityOrder = { high: 3, medium: 2, low: 1 };
       todos.sort(
-        (a, b) => priorityOrder[b.priority] - priorityOrder[a.priority],
+        (a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]
       );
     } else {
       // Default: sort by creation date (newest first)
@@ -165,7 +165,9 @@ app.post("/api/todos", async (req, res) => {
     // Validate input
     const validation = validateTodo({ title, priority });
     if (!validation.valid) {
-      return res.status(400).json({ success: false, message: validation.message });
+      return res
+        .status(400)
+        .json({ success: false, message: validation.message });
     }
 
     // Create todo object
@@ -210,24 +212,35 @@ app.put("/api/todos/:id", async (req, res) => {
     const todoIndex = todos.findIndex((t) => t.id === req.params.id);
 
     if (todoIndex === -1) {
-      return res.status(404).json({ success: false, message: "Todo not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Todo not found" });
     }
 
     // Validate if title provided
-    if (title !== undefined && (title === null || title.toString().trim() === "")) {
-      return res.status(400).json({ success: false, message: "Title is required" });
+    if (
+      title !== undefined &&
+      (title === null || title.toString().trim() === "")
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Title is required" });
     }
 
     // Validate priority if provided
     const validPriorities = ["low", "medium", "high"];
     if (priority !== undefined && !validPriorities.includes(priority)) {
-      return res.status(400).json({ success: false, message: "Invalid priority level" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid priority level" });
     }
 
     // Update fields that are provided
     const todo = todos[todoIndex];
     if (title !== undefined) todo.title = title.toString().trim();
-    if (description !== undefined) todo.description = description === null ? "" : description.toString().trim();
+    if (description !== undefined)
+      todo.description =
+        description === null ? "" : description.toString().trim();
     if (completed !== undefined) todo.completed = Boolean(completed);
     if (priority !== undefined) todo.priority = priority;
     todo.updatedAt = new Date().toISOString();
@@ -313,7 +326,9 @@ app.patch("/api/todos/:id/toggle", async (req, res) => {
     res.status(200).json({
       success: true,
       data: todos[todoIndex],
-      message: `Todo marked as ${todos[todoIndex].completed ? "completed" : "incomplete"} `,
+      message: `Todo marked as ${
+        todos[todoIndex].completed ? "completed" : "incomplete"
+      } `,
     });
   } catch (error) {
     console.error("Error toggling todo:", error);
@@ -343,7 +358,7 @@ app.get("/api/todos/stats", async (req, res) => {
         todos.length > 0
           ? Math.round(
               (todos.filter((todo) => todo.completed).length / todos.length) *
-                100,
+                100
             )
           : 0,
     };
@@ -351,21 +366,21 @@ app.get("/api/todos/stats", async (req, res) => {
     // Daily summary (today's todos)
     const today = new Date().toISOString().split("T")[0];
     const todaysTodos = todos.filter(
-      (todo) => todo.createdAt.split("T")[0] === today,
+      (todo) => todo.createdAt.split("T")[0] === today
     );
 
     // Weekly summary (last 7 days)
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     const weeklyTodos = todos.filter(
-      (todo) => new Date(todo.createdAt) >= weekAgo,
+      (todo) => new Date(todo.createdAt) >= weekAgo
     );
 
     // Monthly summary (last 30 days)
     const monthAgo = new Date();
     monthAgo.setDate(monthAgo.getDate() - 30);
     const monthlyTodos = todos.filter(
-      (todo) => new Date(todo.createdAt) >= monthAgo,
+      (todo) => new Date(todo.createdAt) >= monthAgo
     );
 
     stats.productivity = {
@@ -514,7 +529,7 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(
-        `📋 Todo API endpoints available at http://localhost:${PORT}/api/todos`,
+        `📋 Todo API endpoints available at http://localhost:${PORT}/api/todos`
       );
       console.log(`💡 Health check: http://localhost:${PORT}/api/health`);
       console.log(`💾 Using local JSON file storage: ${STORAGE_FILE}`);
