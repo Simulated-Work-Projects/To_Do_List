@@ -158,38 +158,98 @@ app.get("/api/todos/:id", async (req, res) => {
 });
 
 // POST create new todo
-// POST create new todo (TODO: AADEEP - TO BE COMPLETED)
 app.post("/api/todos", async (req, res) => {
-  // TODO: Extract title, description, priority from req.body
-  // TODO: Validate input data
-  // TODO: Generate unique ID
-  // TODO: Create todo object with timestamps
-  // TODO: Read existing todos from JSON file
-  // TODO: Add new todo to array
-  // TODO: Save updated todos to JSON file
-  // TODO: Return success response with created todo
-  res.status(501).json({
-    success: false,
-    message: "Create todo endpoint ",
-  });
+  try {
+    const { title, description = "", priority = "low" } = req.body;
+
+    // Validate input
+    const validation = validateTodo({ title, priority });
+    if (!validation.valid) {
+      return res.status(400).json({ success: false, message: validation.message });
+    }
+
+    // Create todo object
+    const newTodo = {
+      id: generateId(),
+      title: title.trim(),
+      description: description ? description.trim() : "",
+      priority: priority || "low",
+      completed: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Read, add and persist
+    const todos = await readTodos();
+    todos.unshift(newTodo);
+    const writeSuccess = await writeTodos(todos);
+    if (!writeSuccess) {
+      throw new Error("Failed to create todo");
+    }
+
+    res.status(201).json({
+      success: true,
+      data: newTodo,
+      message: "Todo created successfully",
+    });
+  } catch (error) {
+    console.error("Error creating todo:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while creating todo",
+      error: error.message,
+    });
+  }
 });
 
 // PUT update todo
-// PUT update todo (TODO: AADEEP - TO BE COMPLETED)
 app.put("/api/todos/:id", async (req, res) => {
-  // TODO: Extract title, description, completed, priority from req.body
-  // TODO: Read existing todos from JSON file
-  // TODO: Find todo by ID in the array
-  // TODO: Return 404 if todo not found
-  // TODO: Validate input data if title is being updated
-  // TODO: Update todo fields that are provided
-  // TODO: Update the updatedAt timestamp
-  // TODO: Save updated todos to JSON file
-  // TODO: Return success response with updated todo
-  res.status(501).json({
-    success: false,
-    message: "Update todo endpoint ",
-  });
+  try {
+    const { title, description, completed, priority } = req.body;
+    const todos = await readTodos();
+    const todoIndex = todos.findIndex((t) => t.id === req.params.id);
+
+    if (todoIndex === -1) {
+      return res.status(404).json({ success: false, message: "Todo not found" });
+    }
+
+    // Validate if title provided
+    if (title !== undefined && (title === null || title.toString().trim() === "")) {
+      return res.status(400).json({ success: false, message: "Title is required" });
+    }
+
+    // Validate priority if provided
+    const validPriorities = ["low", "medium", "high"];
+    if (priority !== undefined && !validPriorities.includes(priority)) {
+      return res.status(400).json({ success: false, message: "Invalid priority level" });
+    }
+
+    // Update fields that are provided
+    const todo = todos[todoIndex];
+    if (title !== undefined) todo.title = title.toString().trim();
+    if (description !== undefined) todo.description = description === null ? "" : description.toString().trim();
+    if (completed !== undefined) todo.completed = Boolean(completed);
+    if (priority !== undefined) todo.priority = priority;
+    todo.updatedAt = new Date().toISOString();
+
+    const writeSuccess = await writeTodos(todos);
+    if (!writeSuccess) {
+      throw new Error("Failed to update todo");
+    }
+
+    res.status(200).json({
+      success: true,
+      data: todo,
+      message: "Todo updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating todo:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while updating todo",
+      error: error.message,
+    });
+  }
 });
 // TODO: Add search functionality - GET /api/todos/search?q=searchterm.
 // TODO: optional auth with jwt/localstorage.
