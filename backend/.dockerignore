@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+yarn-error.log
+.env
+.env.local
+.env.production
+
+.git
+.gitignore
+
+Dockerfile.dev
+docker-compose.yml
+
+coverage
+dist
+tmp
